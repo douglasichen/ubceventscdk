@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Debug - Print REGION variable
-        run: echo "REGION is ${{ vars.REGION }}"
-
       - uses: actions/checkout@v5
 
       - name: Setup Node.js
