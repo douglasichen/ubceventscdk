@@ -1,10 +1,10 @@
 name: Deploy CDK Stack
 
 on:
+  workflow_dispatch: # for manual deployment
   push:
     branches:
       - main
-    workflow_dispatch: # for manual deployment
 
 jobs:
   deploy:
