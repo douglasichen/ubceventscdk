@@ -22,11 +22,11 @@ export class UbceventscdkStack extends cdk.Stack {
     // });
 
 
-    // const fetchInstagramIdsLambda = new lambda.Function(this, "FetchInstagramIdsLambda", {
-    //   runtime: lambda.Runtime.PYTHON_3_9,
-    //   code: lambda.Code.fromAsset("lambda/fetch-instagram-ids"),
-    //   handler: "index.handler",
-    // });
+    const fetchInstagramIdsLambda = new lambda.Function(this, "FetchInstagramIdsLambda", {
+      runtime: lambda.Runtime.PYTHON_3_9,
+      code: lambda.Code.fromAsset("lambda/fetch-instagram-ids"),
+      handler: "index.handler",
+    });
 
 
     // const instagramIdsBucket = new s3.Bucket(this, "InstagramIdsBucket", {

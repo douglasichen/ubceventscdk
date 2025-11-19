@@ -7,7 +7,7 @@ import time
 from swiftshadow import QuickProxy
 
 
-def lambda_handler(event, context):
+def handler(event, context):
    print(f'boto3 version: {boto3.__version__}')
    print(f'botocore version: {botocore.__version__}')
    
