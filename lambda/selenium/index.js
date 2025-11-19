@@ -5,30 +5,30 @@ const chromium = require('@sparticuz/chromium');
 exports.handler = async (event) => {
   // const url = "https://www.instagram.com/theubcssa/";
   const url = "https://www.douglaschen.ca/";
-  console.log(`CHROMIUM: ${await chromium.executablePath()}`);
 
-  // const options = new chromium.Options();
-  // options.addArguments(
-  //   '--headless=new',
-  //   '--disable-gpu'
-  // );
-  // options.setChromeBinaryPath('/opt/chrome/chrome');
+  const options = new chromium.Options();
+  options.addArguments(
+    '--headless=new',
+    '--disable-gpu'
+  );
+  options.setChromeBinaryPath(await chromium.executablePath());
 
-  // // Mock proxy (replace with real if needed)
-  // // const mockProxy = '103.174.102.95:80'; // example IP:port
-  // // options.addArguments(`--proxy-server=http://${mockProxy}`);
+  // Mock proxy (replace with real if needed)
+  const mockProxy = '195.123.209.48:3128';
+  options.addArguments(`--proxy-server=http://${mockProxy}`);
 
-  // const driver = new Builder()
-  //   .forBrowser(Browser.CHROME)
-  //   .setChromeOptions(options)
-  //   .build();
+  const driver = new Builder()
+    .forBrowser(Browser.CHROME)
+    .setChromeOptions(options)
+    .build();
 
-  // try {
-  //   await driver.get(url);
-  //   await driver.sleep(5000);
-  //   const html = await driver.getPageSource();
-  //   return { html };
-  // } finally {
-  //   await driver.quit();
-  // }
+  try {
+    await driver.get(url);
+    await driver.sleep(5000);
+    const html = await driver.getPageSource();
+    const hasString = html.includes("Douglas Chen");
+    return { hasString };
+  } finally {
+    await driver.quit();
+  }
 };

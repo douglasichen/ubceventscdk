@@ -35,7 +35,9 @@ export class UbceventscdkStack extends cdk.Stack {
       handler: "index.handler",
       layers: [LayerVersion.fromLayerVersionArn(this, 'chromium-lambda-layer',
         'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:50'
-      )]
+      )],
+      memorySize: 1600,
+      timeout: cdk.Duration.seconds(30),
     });
 
 
