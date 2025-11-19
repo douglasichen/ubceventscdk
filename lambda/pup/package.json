@@ -9,7 +9,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "puppeteer": "^24.30.0",
-    "selenium-webdriver": "^4.38.0"
+    "puppeteer": "^24.30.0"
   }
 }

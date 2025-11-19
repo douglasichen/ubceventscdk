@@ -29,9 +29,11 @@ export class UbceventscdkStack extends cdk.Stack {
       handler: "index.handler",
     });
 
-    const seleniumLambda = new lambda.Function(this, "SeleniumLambda", {
+    
+
+    const puppeteerLambda = new lambda.Function(this, "PuppeteerLambda", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset("lambda/selenium"),
+      code: lambda.Code.fromAsset("lambda/pup"),
       handler: "index.handler",
       layers: [LayerVersion.fromLayerVersionArn(this, 'chromium-lambda-layer',
         'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:50'
