@@ -36,6 +36,5 @@ jobs:
         run: |
           cd lambda/selenium
           npm ci
-          npm run build
       - name: CDK Deploy
         run: npx cdk deploy --require-approval never
