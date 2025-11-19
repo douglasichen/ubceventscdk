@@ -28,6 +28,12 @@ export class UbceventscdkStack extends cdk.Stack {
       handler: "index.handler",
     });
 
+    const seleniumLambda = new lambda.Function(this, "SeleniumLambda", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      code: lambda.Code.fromAsset("lambda/selenium"),
+      handler: "index.handler",
+    });
+
 
     // const instagramIdsBucket = new s3.Bucket(this, "InstagramIdsBucket", {
     //   bucketName: "instagram-ids",

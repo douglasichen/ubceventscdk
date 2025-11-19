@@ -32,5 +32,10 @@ jobs:
         run: |
           cd lambda/fetch-instagram-ids
           pip install -r requirements.txt --target .
+      - name: Install Node.js dependencies for Lambda
+        run: |
+          cd lambda/selenium
+          npm ci
+          npm run build
       - name: CDK Deploy
         run: npx cdk deploy --require-approval never
