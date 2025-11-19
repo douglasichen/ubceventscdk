@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { LayerVersion } from "aws-cdk-lib/aws-lambda";
 
 export class UbceventscdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -29,9 +30,12 @@ export class UbceventscdkStack extends cdk.Stack {
     });
 
     const seleniumLambda = new lambda.Function(this, "SeleniumLambda", {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset("lambda/selenium"),
       handler: "index.handler",
+      layers: [LayerVersion.fromLayerVersionArn(this, 'chromium-lambda-layer',
+        'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:50'
+      )]
     });
 
 
