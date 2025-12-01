@@ -72,35 +72,43 @@ def generate_ai_data(context: str, base64_image: str):
         }
     ]
 
-    print("previous base64_image", base64_image[:10])
-    media_type = base64_image.split(",")[0].split(":")[1].split("/")[1]
-    base64_image = base64_image.split(",")[1]
+    # print("previous base64_image", base64_image[:10])
+    # media_type = base64_image.split(",")[0].split(":")[1].split("/")[1]
+    # base64_image = base64_image.split(",")[1]
 
-    print("media_type", media_type)
-    print("base64_image", base64_image[:10])
+    # print("media_type", media_type)
+    # print("base64_image", base64_image[:10])
+
+    media_type = "image/jpeg"
 
     # handle edge case
     if media_type == "image/jpg":
         media_type = "image/jpeg"
 
-    message = {
-        "role": "user",
-        "content": [
-            {"type": "text", "text": instructions},
-            {"type": "text", "text": json.dumps(input_data)},
-            {
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": media_type,
-                    "data": base64_image,
-                },
-            },
-        ],
-    }
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"text": json.dumps(input_data)},
+            ],
+        },
+        # {
+        #     "role": "user",
+        #     "content": [
+        #         {
+        #             "type": "image",
+        #             "source": {
+        #                 "type": "base64",
+        #                 "media_type": media_type,
+        #                 "data": base64_image,
+        #             },
+        #         },
+        #     ],
+        # },
+    ]
     response_converse = client.converse(
         modelId=MODEL_ID,
-        messages=[message],
+        messages=messages,
         inferenceConfig={"maxTokens": MAX_TOKENS, "temperature": TEMPERATURE},
         toolConfig={
             "tools": tool_list,
@@ -113,7 +121,8 @@ def generate_ai_data(context: str, base64_image: str):
 
 def generate_and_save_ai_data(instagram_id: str, preview_data: dict):
     image_url = preview_data.get("image", "")
-    base64_image = base64.b64encode(requests.get(image_url).content).decode("utf-8")
+    req = requests.get(image_url)
+    base64_image = base64.b64encode(req.content).decode("utf-8")
 
     post_url = preview_data.get("url", "")
     title = preview_data.get("title", "")
@@ -121,15 +130,13 @@ def generate_and_save_ai_data(instagram_id: str, preview_data: dict):
 
     system_prompt = "You are an expert events summarizer."
 
-    print(
-        {
-            system_prompt: system_prompt,
-            title: title,
-            description: description,
-            base64_image: f"{base64_image[:10]}...",
-            post_url: post_url,
-        }
-    )
+    context = {
+        "system_prompt": system_prompt,
+        "title": title,
+        "description": description,
+    }
+
+    ai_data = generate_ai_data(context, base64_image)
     pass
 
 
@@ -142,11 +149,10 @@ def dequeue_instagram_id():
         QueueUrl=queue_url, MaxNumberOfMessages=1, WaitTimeSeconds=20
     )
     message = response.get("Messages", [{}])[0]
-    print(message)
     data = json.loads(message.get("Body", "{}"))
     receipt_handle = message.get("ReceiptHandle", None)
-    if receipt_handle:
-        sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+    # if receipt_handle:
+    #     sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
 
     instagram_id = data.get("id", None)
     if instagram_id is None:
