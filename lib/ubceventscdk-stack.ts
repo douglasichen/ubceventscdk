@@ -61,12 +61,14 @@ export class UbceventscdkStack extends cdk.Stack {
       environment: {
         DYNAMO_EVENTS_TABLE_NAME: dyanmoEventsTable.tableName,
         INSTAGRAM_ID_QUEUE_NAME: instagramIdQueue.queueName,
+        INSTAGRAM_ID_QUEUE_URL: instagramIdQueue.queueUrl,
       }
     });
 
     const enqueueInstagramIdLambdaFunctionUrl = enqueueInstagramIdLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
     });
+    
 
     dyanmoEventsTable.grantReadWriteData(enqueueInstagramIdLambda);
     instagramIdQueue.grantSendMessages(enqueueInstagramIdLambda);
