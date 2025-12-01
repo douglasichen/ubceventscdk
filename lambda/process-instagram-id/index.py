@@ -17,7 +17,10 @@ def process_instagram_id(instagram_id: str, table):
 
 def handler(event, context):
     try:
-        instagram_id = event.get("instagramId", "")
+        instagram_id = event.get("body", {}).get("instagramId", "").trim()
+        if instagram_id == "":
+            raise Exception("Instagram ID is empty string")
+
         dynamodb = boto3.resource("dynamodb")
         table_name = os.environ["DYNAMO_EVENTS_TABLE_NAME"]
         table = dynamodb.Table(table_name)
