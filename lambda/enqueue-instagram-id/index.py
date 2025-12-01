@@ -19,9 +19,10 @@ def enqueue_instagram_id(instagram_id: str, table):
     sqs = boto3.client("sqs")
     queue_url = os.environ["INSTAGRAM_ID_QUEUE_URL"]
     sqs.send_message(
-        QueueUrl=queue_url, MessageBody=json.dumps({"id": instagram_id}),
+        QueueUrl=queue_url,
+        MessageBody=json.dumps({"id": instagram_id}),
         MessageGroupId="default",
-        MessageDeduplicationId=str(uuid.uuid4())
+        MessageDeduplicationId=str(uuid.uuid4()),
     )
 
 
