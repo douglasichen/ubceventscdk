@@ -54,7 +54,7 @@ def dequeue_instagram_id():
     if instagram_id is None:
         raise Exception("Instagram ID is None in message body")
 
-    return instagram_id, message
+    return instagram_id
 
 
 def handler(event, context):
