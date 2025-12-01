@@ -23,28 +23,28 @@ export class UbceventscdkStack extends cdk.Stack {
     // });
 
 
-    const fetchInstagramIdsLambda = new lambda.Function(this, "FetchInstagramIdsLambda", {
-      runtime: lambda.Runtime.PYTHON_3_9,
-      code: lambda.Code.fromAsset("lambda/fetch-instagram-ids"),
-      handler: "index.handler",
-    });
+    // const fetchInstagramIdsLambda = new lambda.Function(this, "FetchInstagramIdsLambda", {
+    //   runtime: lambda.Runtime.PYTHON_3_9,
+    //   code: lambda.Code.fromAsset("lambda/fetch-instagram-ids"),
+    //   handler: "index.handler",
+    // });
 
     
 
-    const puppeteerLambda = new lambda.Function(this, "PuppeteerLambda", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset("lambda/pup"),
-      handler: "index.handler",
-      layers: [LayerVersion.fromLayerVersionArn(this, 'chromium-lambda-layer',
-        'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:50'
-      )],
-      memorySize: 1600,
-      timeout: cdk.Duration.seconds(30),
-    });
+    // const puppeteerLambda = new lambda.Function(this, "PuppeteerLambda", {
+    //   runtime: lambda.Runtime.NODEJS_18_X,
+    //   code: lambda.Code.fromAsset("lambda/pup"),
+    //   handler: "index.handler",
+    //   layers: [LayerVersion.fromLayerVersionArn(this, 'chromium-lambda-layer',
+    //     'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:50'
+    //   )],
+    //   memorySize: 1600,
+    //   timeout: cdk.Duration.seconds(30),
+    // });
 
 
     const processInstagramIdLambda = new lambda.Function(this, "ProcessInstagramIdLambda", {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.PYTHON_3_10,
       code: lambda.Code.fromAsset("lambda/process-instagram-id"),
       handler: "index.handler",
     });

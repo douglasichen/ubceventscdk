@@ -29,13 +29,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.REGION }}
 
-      - name: Install Python dependencies for Lambda
-        run: |
-          cd lambda/fetch-instagram-ids
-          pip install -r requirements.txt --target .
-      - name: Install Node.js dependencies for Lambda
-        run: |
-          cd lambda/selenium
-          npm ci
+      # - name: Install Python dependencies for Lambda
+      #   run: |
+      #     cd lambda/fetch-instagram-ids
+      #     pip install -r requirements.txt --target .
+      # - name: Install Node.js dependencies for Lambda
+      #   run: |
+      #     cd lambda/selenium
+      #     npm ci
       - name: CDK Deploy
         run: npx cdk deploy --require-approval never
