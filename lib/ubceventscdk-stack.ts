@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { LayerVersion } from "aws-cdk-lib/aws-lambda";
@@ -48,33 +49,27 @@ export class UbceventscdkStack extends cdk.Stack {
       writeCapacity: 25,
     });
 
-    const processInstagramIdLambda = new lambda.Function(this, "ProcessInstagramIdLambda", {
+
+    const instagramIdQueue = new sqs.Queue(this, "InstagramIdQueue", {
+      queueName: "instagram-id-queue",
+    });
+
+    const enqueueInstagramIdLambda = new lambda.Function(this, "EnqueueInstagramIdLambda", {
       runtime: lambda.Runtime.PYTHON_3_10,
-      code: lambda.Code.fromAsset("lambda/process-instagram-id"),
+      code: lambda.Code.fromAsset("lambda/enqueue-instagram-id"),
       handler: "index.handler",
       environment: {
         DYNAMO_EVENTS_TABLE_NAME: dyanmoEventsTable.tableName,
+        INSTAGRAM_ID_QUEUE_NAME: instagramIdQueue.queueName,
       }
     });
 
-    dyanmoEventsTable.grantReadWriteData(processInstagramIdLambda);
-
-    const processInstagramIdLambdaFunctionUrl = processInstagramIdLambda.addFunctionUrl({
+    const enqueueInstagramIdLambdaFunctionUrl = enqueueInstagramIdLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
     });
 
-    // const instagramIdsBucket = new s3.Bucket(this, "InstagramIdsBucket", {
-    //   bucketName: "instagram-ids",
-    // });
+    dyanmoEventsTable.grantReadWriteData(enqueueInstagramIdLambda);
+    instagramIdQueue.grantSendMessages(enqueueInstagramIdLambda);
 
-    // const processInstagramIdsLambda = new lambda.Function(
-    //   this,
-    //   "ProcessInstagramIdsLambda",
-    //   {
-    //     runtime: lambda.Runtime.NODEJS_22_X,
-    //     code: lambda.Code.fromAsset("lambda/process-instagram-ids"),
-    //     handler: "index.handler",
-    //   }
-    // );
   }
 }
