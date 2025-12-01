@@ -12,7 +12,7 @@ def enqueue_instagram_id(instagram_id: str, table):
     print(f"Processing Instagram ID '{instagram_id}'")
 
     # put empty data for now
-    table.put_item(Key={"id": instagram_id})
+    table.put_item(Item={"id": instagram_id})
 
     # send message to queue
     sqs = boto3.client("sqs")
