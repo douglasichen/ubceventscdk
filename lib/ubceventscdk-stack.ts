@@ -47,12 +47,12 @@ export class UbceventscdkStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_10,
       code: lambda.Code.fromAsset("lambda/process-instagram-id"),
       handler: "index.handler",
+      reservedConcurrentExecutions: 1,
     });
 
     const processInstagramIdLambdaFunctionUrl = processInstagramIdLambda.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.AWS_IAM,
+      authType: lambda.FunctionUrlAuthType.NONE,
     });
-
 
     // const instagramIdsBucket = new s3.Bucket(this, "InstagramIdsBucket", {
     //   bucketName: "instagram-ids",

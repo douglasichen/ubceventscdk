@@ -1,8 +1,10 @@
+
 def process_instagram_id(instagram_id: str):
     print(f"Processing Instagram ID '{instagram_id}'")
 
 
 def handler(event, context):
+
     instagram_id = event["instagramId"]
     already_processed = False
 
