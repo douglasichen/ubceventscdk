@@ -43,6 +43,13 @@ export class UbceventscdkStack extends cdk.Stack {
     });
 
 
+    const processInstagramIdLambda = new lambda.Function(this, "ProcessInstagramIdLambda", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      code: lambda.Code.fromAsset("lambda/process-instagram-id"),
+      handler: "index.handler",
+    });
+
+
     // const instagramIdsBucket = new s3.Bucket(this, "InstagramIdsBucket", {
     //   bucketName: "instagram-ids",
     // });
