@@ -1,5 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sqs from "aws-cdk-lib/aws-sqs";
@@ -101,5 +103,17 @@ export class UbceventscdkStack extends cdk.Stack {
 
     dyanmoEventsTable.grantReadWriteData(dequeueInstagramIdLambda);
     instagramIdQueue.grantConsumeMessages(dequeueInstagramIdLambda);
+
+    const dequeueInstagramIdScheduleRule = new events.Rule(
+      this,
+      "DequeueInstagramIdScheduleRule",
+      {
+        schedule: events.Schedule.rate(cdk.Duration.minutes(2)),
+      }
+    );
+
+    dequeueInstagramIdScheduleRule.addTarget(
+      new targets.LambdaFunction(dequeueInstagramIdLambda)
+    );
   }
 }
