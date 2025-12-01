@@ -17,7 +17,8 @@ def process_instagram_id(instagram_id: str, table):
 
 def handler(event, context):
     try:
-        instagram_id = event.get("body", {}).get("instagramId", "").trim()
+        event_body = json.loads(event.get("body", "{}"))
+        instagram_id = event_body.get("instagramId", "").trim()
         if instagram_id == "":
             raise Exception("Instagram ID is empty string")
 
