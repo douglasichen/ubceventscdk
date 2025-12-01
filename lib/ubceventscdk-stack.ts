@@ -73,5 +73,18 @@ export class UbceventscdkStack extends cdk.Stack {
     dyanmoEventsTable.grantReadWriteData(enqueueInstagramIdLambda);
     instagramIdQueue.grantSendMessages(enqueueInstagramIdLambda);
 
+
+    const dequeueInstagramIdLambda = new lambda.Function(this, "DequeueInstagramIdLambda", {
+      runtime: lambda.Runtime.PYTHON_3_10,
+      code: lambda.Code.fromAsset("lambda/dequeue-instagram-id"),
+      handler: "index.handler",
+      environment: {
+        DYNAMO_EVENTS_TABLE_NAME: dyanmoEventsTable.tableName,
+        INSTAGRAM_ID_QUEUE_URL: instagramIdQueue.queueUrl,
+      }
+    });
+
+    instagramIdQueue.grantConsumeMessages(dequeueInstagramIdLambda);
+
   }
 }

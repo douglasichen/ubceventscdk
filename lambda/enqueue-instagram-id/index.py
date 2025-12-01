@@ -8,14 +8,13 @@ def instagram_id_exists(instagram_id: str, table):
     return response.get("Item", None) is not None
 
 
-def process_instagram_id(instagram_id: str, table):
+def enqueue_instagram_id(instagram_id: str, table):
     print(f"Processing Instagram ID '{instagram_id}'")
 
     # put empty data for now
     table.put_item(Item={"id": instagram_id, "data": {}})
 
     # send message to queue
-
     sqs = boto3.client("sqs")
     queue_url = os.environ["INSTAGRAM_ID_QUEUE_URL"]
     sqs.send_message(
@@ -36,13 +35,13 @@ def handler(event, context):
 
         id_exists = instagram_id_exists(instagram_id, table)
         if not id_exists:
-            process_instagram_id(instagram_id, table)
+            enqueue_instagram_id(instagram_id, table)
 
         return {
             "statusCode": 200,
             "body": json.dumps(
                 {
-                    "processed": not id_exists,
+                    "enqueued": not id_exists,
                 }
             ),
         }
@@ -51,7 +50,7 @@ def handler(event, context):
             "statusCode": 500,
             "body": json.dumps(
                 {
-                    "processed": False,
+                    "enqueued": False,
                     "error": str(e),
                 }
             ),
