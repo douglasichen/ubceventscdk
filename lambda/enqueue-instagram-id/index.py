@@ -1,6 +1,7 @@
 import json
 import os
 import boto3
+import uuid
 
 
 def instagram_id_exists(instagram_id: str, table):
@@ -20,6 +21,7 @@ def enqueue_instagram_id(instagram_id: str, table):
     sqs.send_message(
         QueueUrl=queue_url, MessageBody=json.dumps({"id": instagram_id}),
         MessageGroupId="default",
+        MessageDeduplicationId=str(uuid.uuid4())
     )
 
 
