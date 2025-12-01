@@ -52,6 +52,7 @@ export class UbceventscdkStack extends cdk.Stack {
 
     const instagramIdQueue = new sqs.Queue(this, "InstagramIdQueue", {
       queueName: "instagram-id-queue",
+      fifo: true,
     });
 
     const enqueueInstagramIdLambda = new lambda.Function(this, "EnqueueInstagramIdLambda", {

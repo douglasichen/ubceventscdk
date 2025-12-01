@@ -34,7 +34,9 @@ def handler(event, context):
         table = dynamodb.Table(table_name)
 
         id_exists = instagram_id_exists(instagram_id, table)
+        print(f"Instagram ID '{instagram_id}' exists: {id_exists}")
         if not id_exists:
+            print(f"Enqueuing Instagram ID '{instagram_id}'")
             enqueue_instagram_id(instagram_id, table)
 
         return {
