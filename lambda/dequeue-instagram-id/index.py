@@ -74,6 +74,10 @@ def generate_ai_data(context: str, image_bytes: bytes):
                 "description": "The location of the event.",
                 "maxLength": 20,
             },
+            "free": {
+                "description": "Whether the food and event is free or not. Say unsure if it does not say.",
+                "enum": ["yes", "no", "unsure"],
+            }
         },
         "required": ["event_name", "description", "has_food_or_drinks", "food_or_drinks", "datetime", "location"],
     }
