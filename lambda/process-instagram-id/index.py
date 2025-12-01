@@ -2,22 +2,24 @@ import json
 import os
 import boto3
 
+
 def instagram_id_exists(instagram_id: str, table):
-    response = table.get_item(Key={'id': instagram_id})
-    return response.get('Item', None) is not None
+    response = table.get_item(Key={"id": instagram_id}, ConsistentRead=True)
+    return response.get("Item", None) is not None
+
 
 def process_instagram_id(instagram_id: str, table):
     print(f"Processing Instagram ID '{instagram_id}'")
 
     # put empty data for now
-    table.put_item(Item={'id': instagram_id, 'data': {}})
+    table.put_item(Item={"id": instagram_id, "data": {}})
 
 
 def handler(event, context):
     try:
-        instagram_id = event.get("instagramId", '')
-        dynamodb = boto3.resource('dynamodb')
-        table_name = os.environ['DYNAMO_EVENTS_TABLE_NAME']
+        instagram_id = event.get("instagramId", "")
+        dynamodb = boto3.resource("dynamodb")
+        table_name = os.environ["DYNAMO_EVENTS_TABLE_NAME"]
         table = dynamodb.Table(table_name)
 
         id_exists = instagram_id_exists(instagram_id, table)
@@ -26,15 +28,19 @@ def handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json.dumps({
-                "processed": not id_exists,
-            }),
+            "body": json.dumps(
+                {
+                    "processed": not id_exists,
+                }
+            ),
         }
     except Exception as e:
         return {
             "statusCode": 500,
-            "body": json.dumps({
-                "processed": False,
-                "error": str(e),
-            }),
+            "body": json.dumps(
+                {
+                    "processed": False,
+                    "error": str(e),
+                }
+            ),
         }
