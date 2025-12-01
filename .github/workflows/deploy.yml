@@ -39,3 +39,6 @@ jobs:
       #     npm ci
       - name: CDK Deploy
         run: npx cdk deploy --require-approval never
+        env:
+          LINK_PREVIEW_API_KEY: ${{ secrets.LINK_PREVIEW_API_KEY }}
+          LINK_PREVIEW_API_URL: ${{ vars.LINK_PREVIEW_API_URL }}

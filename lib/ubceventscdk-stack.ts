@@ -81,6 +81,8 @@ export class UbceventscdkStack extends cdk.Stack {
       environment: {
         DYNAMO_EVENTS_TABLE_NAME: dyanmoEventsTable.tableName,
         INSTAGRAM_ID_QUEUE_URL: instagramIdQueue.queueUrl,
+        LINK_PREVIEW_API_KEY: process.env.LINK_PREVIEW_API_KEY || "",
+        LINK_PREVIEW_API_URL: process.env.LINK_PREVIEW_API_URL || "",
       }
     });
 
