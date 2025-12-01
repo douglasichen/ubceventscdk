@@ -1,17 +1,9 @@
-from dataclasses import dataclass
-
-
-@dataclass
-class InstagramIdEvent:
-    instagramId: str
-
-
 def process_instagram_id(instagram_id: str):
-    print(f"Processing Instagram ID: {instagram_id}")
+    print(f"Processing Instagram ID '{instagram_id}'")
 
 
-def handler(event: InstagramIdEvent):
-    instagram_id = event.instagramId
+def handler(event, context):
+    instagram_id = event["instagramId"]
     already_processed = False
 
     if already_processed:
@@ -23,12 +15,21 @@ def handler(event: InstagramIdEvent):
             },
         }
 
-    process_instagram_id(instagram_id)
-
-    return {
-        "statusCode": 200,
-        "body": {
-            "alreadyProcessed": False,
-            "processed": True,
-        },
-    }
+    try:
+        process_instagram_id(instagram_id)
+        return {
+            "statusCode": 200,
+            "body": {
+                "alreadyProcessed": False,
+                "processed": True,
+            },
+        }
+    except Exception as e:
+        print(f"Error processing Instagram ID '{instagram_id}':", e)
+        return {
+            "statusCode": 500,
+            "body": {
+                "alreadyProcessed": False,
+                "processed": False,
+            },
+        }
