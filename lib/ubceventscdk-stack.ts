@@ -47,7 +47,6 @@ export class UbceventscdkStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_10,
       code: lambda.Code.fromAsset("lambda/process-instagram-id"),
       handler: "index.handler",
-      reservedConcurrentExecutions: 10, // 10 is minimum allowed
     });
 
     const processInstagramIdLambdaFunctionUrl = processInstagramIdLambda.addFunctionUrl({
