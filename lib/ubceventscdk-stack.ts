@@ -50,7 +50,7 @@ export class UbceventscdkStack extends cdk.Stack {
     });
 
     const processInstagramIdLambdaFunctionUrl = processInstagramIdLambda.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
+      authType: lambda.FunctionUrlAuthType.AWS_IAM,
     });
 
 
