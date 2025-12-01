@@ -39,8 +39,9 @@ def dequeue_instagram_id():
     sqs = boto3.client("sqs")
     queue_url = os.environ["INSTAGRAM_ID_QUEUE_URL"]
 
-    response = sqs.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=1)
+    response = sqs.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=1, WaitTimeSeconds=20)
     message = response.get("Messages", [{}])[0]
+    print(message)
     data = json.loads(message.get("Body", "{}"))
     # receipt_handle = message.get("ReceiptHandle", None)
     # if receipt_handle:

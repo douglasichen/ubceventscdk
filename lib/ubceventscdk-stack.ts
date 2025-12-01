@@ -84,7 +84,7 @@ export class UbceventscdkStack extends cdk.Stack {
         LINK_PREVIEW_API_KEY: process.env.LINK_PREVIEW_API_KEY || "",
         LINK_PREVIEW_API_URL: process.env.LINK_PREVIEW_API_URL || "",
       },
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.seconds(60),
     });
     dyanmoEventsTable.grantReadWriteData(dequeueInstagramIdLambda);
     instagramIdQueue.grantConsumeMessages(dequeueInstagramIdLambda);
