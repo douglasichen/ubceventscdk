@@ -43,12 +43,12 @@ def dequeue_instagram_id():
     message = response.get("Messages", [{}])[0]
     print(message)
     data = json.loads(message.get("Body", "{}"))
-    # receipt_handle = message.get("ReceiptHandle", None)
-    # if receipt_handle:
-    #     sqs.delete_message(
-    #         QueueUrl=queue_url,
-    #         ReceiptHandle=receipt_handle
-    #     )
+    receipt_handle = message.get("ReceiptHandle", None)
+    if receipt_handle:
+        sqs.delete_message(
+            QueueUrl=queue_url,
+            ReceiptHandle=receipt_handle
+        )
 
     instagram_id = data.get("id", None)
     if instagram_id is None:
