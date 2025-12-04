@@ -21,8 +21,8 @@ export class UbceventscdkStack extends cdk.Stack {
       restApiName: 'ThrottledPublicService',
       deployOptions: {
         stageName: 'prod',
-        throttlingRateLimit: 10,
-        throttlingBurstLimit: 10,
+        throttlingRateLimit: 2,
+        throttlingBurstLimit: 2,
       },
       defaultCorsPreflightOptions: {
         // change to just freefoodatubc.ca in production
