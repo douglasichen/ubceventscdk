@@ -14,7 +14,6 @@ export class UbceventscdkStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_10,
       code: lambda.Code.fromAsset('lambda/get-events'),
       handler: 'index.handler',
-      reservedConcurrentExecutions: 10,
     });
 
     // 2. The API (with CORS and Throttling)
