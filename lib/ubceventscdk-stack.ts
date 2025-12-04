@@ -14,7 +14,7 @@ export class UbceventscdkStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_10,
       code: lambda.Code.fromAsset('lambda/get-events'),
       handler: 'index.handler',
-      reservedConcurrentExecutions: 40,
+      reservedConcurrentExecutions: 10,
     });
 
     // 2. The API (with CORS and Throttling)
@@ -22,8 +22,8 @@ export class UbceventscdkStack extends cdk.Stack {
       restApiName: 'ThrottledPublicService',
       deployOptions: {
         stageName: 'prod',
-        throttlingRateLimit: 20,
-        throttlingBurstLimit: 40,
+        throttlingRateLimit: 10,
+        throttlingBurstLimit: 10,
       },
       defaultCorsPreflightOptions: {
         // change to just freefoodatubc.ca in production
