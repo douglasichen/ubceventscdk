@@ -3,6 +3,11 @@ import os
 import boto3
 from datetime import datetime, timedelta
 
+HEADERS = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+}
+
 
 def handler(event, context):
     try:
@@ -22,7 +27,15 @@ def handler(event, context):
         )
 
         events = response.get("Items", [])
-        return {"statusCode": 200, "body": json.dumps({"events": events})}
+        return {
+            "statusCode": 200,
+            "headers": HEADERS,
+            "body": json.dumps({"events": events}),
+        }
 
     except Exception as e:
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        return {
+            "statusCode": 500,
+            "headers": HEADERS,
+            "body": json.dumps({"error": str(e)}),
+        }
