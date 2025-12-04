@@ -10,10 +10,13 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 
 export class UbceventscdkStack extends cdk.Stack {
   private createSecureGetEventsLambda(dynamoEventsTable: dynamodb.Table) {// 1. The Backend (Lambda)
-    const safeHandler = new lambda.Function(this, 'SafeHandler', {
+    const eventsLambda = new lambda.Function(this, 'EventsLambda', {
       runtime: lambda.Runtime.PYTHON_3_10,
       code: lambda.Code.fromAsset('lambda/get-events'),
       handler: 'index.handler',
+      environment: {
+        DYNAMO_EVENTS_TABLE_NAME: dynamoEventsTable.tableName,
+      }
     });
 
     // 2. The API (with CORS and Throttling)
@@ -31,7 +34,7 @@ export class UbceventscdkStack extends cdk.Stack {
       },
     });
 
-    const integration = new apigateway.LambdaIntegration(safeHandler);
+    const integration = new apigateway.LambdaIntegration(eventsLambda);
     api.root.addMethod('GET', integration);
   }
 
