@@ -36,6 +36,8 @@ export class UbceventscdkStack extends cdk.Stack {
 
     const integration = new apigateway.LambdaIntegration(eventsLambda);
     api.root.addMethod('GET', integration);
+
+    dynamoEventsTable.grantReadData(eventsLambda);
   }
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
