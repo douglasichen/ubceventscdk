@@ -111,7 +111,7 @@ export class UbceventscdkStack extends cdk.Stack {
       this,
       "DequeueInstagramIdScheduleRule",
       {
-        schedule: events.Schedule.rate(cdk.Duration.seconds(70)),
+        schedule: events.Schedule.rate(cdk.Duration.minutes(2)),
       }
     );
 
