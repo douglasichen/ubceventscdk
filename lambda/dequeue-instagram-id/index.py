@@ -61,12 +61,12 @@ def generate_ai_data(context: str, image_bytes: bytes):
             "food_or_drinks": {
                 "type": "string",
                 "description": "Concisely list the food/drinks that are being served at the event.",
-                "maxLength": 20,
+                "maxLength": 15,
             },
             "datetime": {
-                "type": "string",
-                "pattern": "\d{2}/\d{2}/\d{4} \d{1,2}:\d{2}",
-                "description": "The date and time of the event. If the month is november or december, use the year 2025. Otherwise, use the year 2026.",
+                "type": ["string", "null"],
+                "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
+                "description": "The date and time of the event. If the month is november or december, use the year 2025. Otherwise, use the year 2026. Or null if the date is not present.",
                 "maxLength": 20,
             },
             "location": {
@@ -79,7 +79,7 @@ def generate_ai_data(context: str, image_bytes: bytes):
                 "enum": ["yes", "no", "unsure"],
             }
         },
-        "required": ["event_name", "description", "has_food_or_drinks", "food_or_drinks", "datetime", "location"],
+        "required": ["event_name", "description", "has_food_or_drinks", "food_or_drinks", "datetime", "location", "free"],
     }
     input_data = context
 
