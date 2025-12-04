@@ -3,44 +3,43 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
-import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import { LayerVersion } from "aws-cdk-lib/aws-lambda";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 
 export class UbceventscdkStack extends cdk.Stack {
+  private createSecureGetEventsLambda(dynamoEventsTable: dynamodb.Table) {// 1. The Backend (Lambda)
+    const safeHandler = new lambda.Function(this, 'SafeHandler', {
+      runtime: lambda.Runtime.PYTHON_3_10,
+      code: lambda.Code.fromAsset('lambda/get-events'),
+      handler: 'index.handler',
+      reservedConcurrentExecutions: 40,
+    });
+
+    // 2. The API (with CORS and Throttling)
+    const api = new apigateway.RestApi(this, 'SafeApi', {
+      restApiName: 'ThrottledPublicService',
+      deployOptions: {
+        stageName: 'prod',
+        throttlingRateLimit: 20,
+        throttlingBurstLimit: 40,
+      },
+      defaultCorsPreflightOptions: {
+        // change to just freefoodatubc.ca in production
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      },
+    });
+
+    const integration = new apigateway.LambdaIntegration(safeHandler);
+    api.root.addMethod('GET', integration);
+  }
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const eventsBucket = new s3.Bucket(this, "UbcEventsBucket", {
-      bucketName: "ubc-events-bucket",
-    });
-
-    // const processInstagramIdsLambda = new lambda.Function(this, "ProcessInstagramIdsLambda", {
-    //   runtime: lambda.Runtime.NODEJS_22_X,
-    //   code: lambda.Code.fromAsset("lambda/process-instagram-ids"),
-    //   handler: "index.handler",
-    // });
-
-    // const fetchInstagramIdsLambda = new lambda.Function(this, "FetchInstagramIdsLambda", {
-    //   runtime: lambda.Runtime.PYTHON_3_9,
-    //   code: lambda.Code.fromAsset("lambda/fetch-instagram-ids"),
-    //   handler: "index.handler",
-    // });
-
-    // const puppeteerLambda = new lambda.Function(this, "PuppeteerLambda", {
-    //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   code: lambda.Code.fromAsset("lambda/pup"),
-    //   handler: "index.handler",
-    //   layers: [LayerVersion.fromLayerVersionArn(this, 'chromium-lambda-layer',
-    //     'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:50'
-    //   )],
-    //   memorySize: 1600,
-    //   timeout: cdk.Duration.seconds(30),
-    // });
-
-    const dyanmoEventsTable = new dynamodb.Table(this, "DyanmoEventsTable", {
+    const dynamoEventsTable = new dynamodb.Table(this, "DyanmoEventsTable", {
       tableName: "dynamo-events-table",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PROVISIONED,
@@ -61,7 +60,7 @@ export class UbceventscdkStack extends cdk.Stack {
         code: lambda.Code.fromAsset("lambda/enqueue-instagram-id"),
         handler: "index.handler",
         environment: {
-          DYNAMO_EVENTS_TABLE_NAME: dyanmoEventsTable.tableName,
+          DYNAMO_EVENTS_TABLE_NAME: dynamoEventsTable.tableName,
           INSTAGRAM_ID_QUEUE_NAME: instagramIdQueue.queueName,
           INSTAGRAM_ID_QUEUE_URL: instagramIdQueue.queueUrl,
         },
@@ -73,7 +72,7 @@ export class UbceventscdkStack extends cdk.Stack {
         authType: lambda.FunctionUrlAuthType.NONE,
       });
 
-    dyanmoEventsTable.grantReadWriteData(enqueueInstagramIdLambda);
+    dynamoEventsTable.grantReadWriteData(enqueueInstagramIdLambda);
     instagramIdQueue.grantSendMessages(enqueueInstagramIdLambda);
 
     const dequeueInstagramIdLambda = new lambda.Function(
@@ -84,7 +83,7 @@ export class UbceventscdkStack extends cdk.Stack {
         code: lambda.Code.fromAsset("lambda/dequeue-instagram-id"),
         handler: "index.handler",
         environment: {
-          DYNAMO_EVENTS_TABLE_NAME: dyanmoEventsTable.tableName,
+          DYNAMO_EVENTS_TABLE_NAME: dynamoEventsTable.tableName,
           INSTAGRAM_ID_QUEUE_URL: instagramIdQueue.queueUrl,
           LINK_PREVIEW_API_KEY: process.env.LINK_PREVIEW_API_KEY || "",
           LINK_PREVIEW_API_URL: process.env.LINK_PREVIEW_API_URL || "",
@@ -101,7 +100,7 @@ export class UbceventscdkStack extends cdk.Stack {
       })
     );
 
-    dyanmoEventsTable.grantReadWriteData(dequeueInstagramIdLambda);
+    dynamoEventsTable.grantReadWriteData(dequeueInstagramIdLambda);
     instagramIdQueue.grantConsumeMessages(dequeueInstagramIdLambda);
 
     const dequeueInstagramIdScheduleRule = new events.Rule(
@@ -115,5 +114,7 @@ export class UbceventscdkStack extends cdk.Stack {
     dequeueInstagramIdScheduleRule.addTarget(
       new targets.LambdaFunction(dequeueInstagramIdLambda)
     );
+
+    this.createSecureGetEventsLambda(dynamoEventsTable);
   }
 }
