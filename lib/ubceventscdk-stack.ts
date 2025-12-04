@@ -16,7 +16,8 @@ export class UbceventscdkStack extends cdk.Stack {
       handler: 'index.handler',
       environment: {
         DYNAMO_EVENTS_TABLE_NAME: dynamoEventsTable.tableName,
-      }
+      },
+      timeout: cdk.Duration.seconds(10),
     });
 
     // 2. The API (with CORS and Throttling)
