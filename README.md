@@ -12,3 +12,8 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 * `npx cdk deploy`  deploy this stack to your default AWS account/region
 * `npx cdk diff`    compare deployed stack with current state
 * `npx cdk synth`   emits the synthesized CloudFormation template
+
+
+## Debugging
+Error: `❌  UbceventscdkStack failed: ToolkitError: Failed to create ChangeSet cdk-deploy-change-set on UbceventscdkStack: FAILED, The following hook(s)/validation failed: [AWS::EarlyValidation::ResourceExistenceCheck]. To troubleshoot Early Validation errors, use the DescribeEvents API for detailed failure information.`
+Solution: delete S3 buckets, delete stack, and redeploy.

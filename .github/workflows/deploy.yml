@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - feat/processInstagramIds
 
 jobs:
   deploy:
@@ -28,5 +29,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.REGION }}
 
+      - name: Install Python dependencies for Lambda
+        run: |
+          cd lambda/dequeue-instagram-id
+          pip install -r requirements.txt --target .
+      # - name: Install Node.js dependencies for Lambda
+      #   run: |
+      #     cd lambda/selenium
+      #     npm ci
       - name: CDK Deploy
         run: npx cdk deploy --require-approval never
+        env:
+          LINK_PREVIEW_API_KEY: ${{ secrets.LINK_PREVIEW_API_KEY }}
+          LINK_PREVIEW_API_URL: ${{ vars.LINK_PREVIEW_API_URL }}
