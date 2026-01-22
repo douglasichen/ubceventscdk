@@ -12,8 +12,10 @@ HEADERS = {
 def handler(event, context):
     try:
         now = datetime.now()
+        start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
         future = now + timedelta(weeks=2)
-        start_date = now.strftime("%Y-%m-%dT%H:%M:%S")
+        
+        start_date = start_of_day.strftime("%Y-%m-%dT%H:%M:%S")
         end_date = future.strftime("%Y-%m-%dT%H:%M:%S")
 
         dynamodb = boto3.resource("dynamodb")
