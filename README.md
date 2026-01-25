@@ -1,12 +1,23 @@
 # UBC Events CDK
 
-An AWS CDK (Cloud Development Kit) project that automatically processes Instagram posts (given only their ids) to extract and serve event information, with a focus on free food events at UBC (but can be customized for other use cases).
+An AWS CDK (Cloud Development Kit) project that automatically processes Instagram posts (given only their ids) to extract and serve event information, with a focus on free food events at UBC (but can be customized for other use cases). The stack costs less than $0.01/3K posts for the scraping feature (excludes AI processing fee).
 
 ## Overview
 
-This system scrapes Instagram posts (primarily from @theubcssa), processes them using AI to extract structured event data, and serves the information via a public REST API. The architecture is designed to handle Instagram post IDs asynchronously, using a queue-based processing system with AI-powered event extraction.
+This system scrapes Instagram posts, processes them using AI to extract structured event data, and serves the information via a public REST API. The architecture is designed to handle Instagram post IDs asynchronously, using a queue-based processing system with AI-powered event extraction.
 
-## Architecture
+## Architecture Overview
+![Architecture Overview](./public/architecture-overview.png)
+1. The [Local Instagram ID Scraper](https://github.com/douglasichen/localInstagramIdScraper) sends IDs to the enqueue lambda to be processed (The scraper must be run on your local residential IP address, and you can create a cron job to run it locally periodically).
+2. The enqueue lambda saves the ID to the DynamoDB table and sends a message to the SQS queue which depends on whether the ID is already in the table.
+3. The enqueue lambda adds the ID to the fifo SQS queue.
+4. A dequeue lambda is triggered every 2 minutes to process the oldest ID from the queue (throttled due to free link preview API limit).
+5. Scraped data (+ AI processed data) is saved to the DynamoDB table.
+6. A client requests the data from the API Gateway.
+7. The API Gateway triggers the get-events lambda to query the DynamoDB table for the data.
+8. The get-events lambda fetches the data from the DynamoDB table and returns it to the client.
+
+## Architecture Details
 
 ### Components
 
