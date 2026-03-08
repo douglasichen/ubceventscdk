@@ -27,7 +27,7 @@ export class UbceventscdkStack extends cdk.Stack {
         stageName: 'prod',
         cacheClusterEnabled: true,
         cachingEnabled: true,
-        cacheTtl: cdk.Duration.hours(6),
+        cacheTtl: cdk.Duration.seconds(3600),
         throttlingRateLimit: 10,
         throttlingBurstLimit: 10,
       },
