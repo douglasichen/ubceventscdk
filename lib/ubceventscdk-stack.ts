@@ -25,9 +25,9 @@ export class UbceventscdkStack extends cdk.Stack {
       restApiName: 'ThrottledPublicService',
       deployOptions: {
         stageName: 'prod',
-        cacheClusterEnabled: true,
-        cachingEnabled: true,
-        cacheTtl: cdk.Duration.seconds(3600),
+        // cacheClusterEnabled: true,
+        // cachingEnabled: true,
+        // cacheTtl: cdk.Duration.seconds(3600),
         throttlingRateLimit: 10,
         throttlingBurstLimit: 10,
       },
