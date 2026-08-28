@@ -50,9 +50,10 @@ export class UbceventscdkStack extends cdk.Stack {
     const dynamoEventsTable = new dynamodb.Table(this, "DyanmoEventsTable", {
       tableName: "dynamo-events-table",
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PROVISIONED,
-      readCapacity: 25,
-      writeCapacity: 25,
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      // billingMode: dynamodb.BillingMode.PROVISIONED,
+      // readCapacity: 25,
+      // writeCapacity: 25,
     });
 
     const instagramIdQueue = new sqs.Queue(this, "InstagramIdQueue", {
