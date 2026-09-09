@@ -25,9 +25,13 @@ export class UbceventscdkStack extends cdk.Stack {
       restApiName: 'ThrottledPublicService',
       deployOptions: {
         stageName: 'prod',
-        // cacheClusterEnabled: true,
-        // cachingEnabled: true,
-        // cacheTtl: cdk.Duration.seconds(3600),
+        // Must be present and false, not commented out. Omitting these makes
+        // CloudFormation stop managing the cache rather than disable it, which
+        // is why the 0.5GB cluster kept billing $0.48/day after it was
+        // "disabled" -- and why drift detection still reported IN_SYNC.
+        // Caching is handled by the Cache-Control header in lambda/get-events.
+        cacheClusterEnabled: false,
+        cachingEnabled: false,
         throttlingRateLimit: 10,
         throttlingBurstLimit: 10,
       },

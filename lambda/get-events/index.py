@@ -6,6 +6,10 @@ from datetime import datetime, timedelta
 HEADERS = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
+    # Replaces the API Gateway cache cluster. max-age caches per browser;
+    # s-maxage is for a shared cache (CDN) if this ever gets fronted by one.
+    # 5min is well under the 2min dequeue cadence's practical staleness.
+    "Cache-Control": "public, max-age=300, s-maxage=300",
 }
 
 
