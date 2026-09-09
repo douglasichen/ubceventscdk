@@ -66,7 +66,7 @@ def generate_ai_data(context: str, image_bytes: bytes):
             "datetime": {
                 "type": ["string", "null"],
                 "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
-                "description": "The date and time of the event. If the month is november or december, use the year 2025. Otherwise, use the year 2026. Or null if the date is not present.",
+                "description": "The date and time of the event. Use the year 2026. Or null if the date is not present.",
                 "maxLength": 20,
             },
             "location": {
