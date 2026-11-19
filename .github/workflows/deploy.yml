@@ -32,7 +32,8 @@ jobs:
       - name: Install Python dependencies for Lambda
         run: |
           cd lambda/dequeue-instagram-id
-          pip install -r requirements.txt --target .
+          # Match the Lambda runtime (python3.10 x86_64), not the runner's Python, or compiled deps (pydantic_core) fail to import.
+          pip install -r requirements.txt --target . --platform manylinux2014_x86_64 --implementation cp --python-version 3.10 --only-binary=:all:
       # - name: Install Node.js dependencies for Lambda
       #   run: |
       #     cd lambda/selenium
