@@ -3,6 +3,8 @@ import os
 import boto3
 import requests
 import base64
+import anthropic
+from typesafe_sdk import Choice, Noul, TypeSafeClient
 
 
 def instagram_id_exists(instagram_id: str, table):
@@ -28,14 +30,54 @@ def fetch_and_save_instagram_preview(instagram_id: str, instagram_url: str, tabl
     return preview_data
 
 
-def has_food(preview_data: dict):
-    return True
+# Jev classifies; the extraction model only runs on posts that pass FOOD_GATE.
+# Thresholds from a 60-post hand-judged eval: >=0.9 caught 7/8 food events with ~3 false alarms.
+FOOD_GATE = 0.45
+FOOD_SHOW = 0.9
+
+JEV_QUESTIONS = {
+    "food_event": Noul(
+        instructions="Will attendees of an event in this post be given or served food or drinks "
+        "(e.g. pizza, snacks, coffee, bubble tea, refreshments)? Drinks alone count: an event offering "
+        "only coffee, tea, hot chocolate or 'a hot beverage' is a yes. Restaurant/café ads, food for sale "
+        "with no event, and posts that only mention food in passing do not count.",
+    ),
+    "drinks_event": Noul(
+        instructions="Will attendees of an event in this post be given a drink, such as coffee, tea, "
+        "hot chocolate or 'a hot beverage' (even if they bring their own mug)? Drinks for sale do not count.",
+    ),
+    "free": Choice(
+        instructions="Is the food/drink (and entry) free for attendees?",
+        criteria={
+            "yes": "Explicitly free, or clearly provided at no cost",
+            "no": "Costs money: tickets, paid entry, or food for sale",
+            "unsure": "Not stated",
+        },
+    ),
+}
+
+
+def classify_with_jev(title: str, description: str, image_bytes: bytes):
+    # ponytail: Instagram previews are ~1080px, inside Jev's 280-1568px window, so no resize.
+    with TypeSafeClient() as client:
+        res = client.system_one(
+            state={"instagram_title": title, "caption": description, "post_image": "img-1"},
+            questions=JEV_QUESTIONS,
+            extra_body={"assets": {"img-1": {"type": "image", "format": "jpg",
+                                             "data_base64": base64.b64encode(image_bytes).decode()}}},
+            extra_headers={"TypeSafe-Danger-Zone-Images": "true"},
+            timeout=30,
+        )
+    a = res.answers
+    return {
+        "food": max(float(a["food_event"].noul), float(a["drinks_event"].noul)),
+        "free": a["free"].choice,
+    }
 
 
 def generate_ai_data(context: str, image_bytes: bytes):
-    client = boto3.Session().client("bedrock-runtime", region_name="us-east-1")
-    MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
-    TEMPERATURE = 0
+    client = anthropic.Anthropic()
+    MODEL_ID = "claude-haiku-5-5"
     MAX_TOKENS = 4096
 
     tool_name = "generate_event_data"
@@ -54,10 +96,6 @@ def generate_ai_data(context: str, image_bytes: bytes):
                 "description": "A description summary that is only to 1-2 sentences. Only whats happening at the event. Leave out time, place and event name. Keep it simple and fun",
                 "maxLength": 300,
             },
-            "has_food_or_drinks": {
-                "type": "boolean",
-                "description": "Whether the post has food or drinks.",
-            },
             "food_or_drinks": {
                 "type": "string",
                 "description": "Concisely list the food/drinks that are being served at the event.",
@@ -74,60 +112,33 @@ def generate_ai_data(context: str, image_bytes: bytes):
                 "description": "The location of the event.",
                 "maxLength": 20,
             },
-            "free": {
-                "description": "Whether the food and event is free or not. Say unsure if it does not say.",
-                "enum": ["yes", "no", "unsure"],
-            }
         },
-        "required": ["event_name", "description", "has_food_or_drinks", "food_or_drinks", "datetime", "location", "free"],
+        "required": ["event_name", "description", "food_or_drinks", "datetime", "location"],
     }
-    input_data = context
-
-    tool_list = [
-        {
-            "toolSpec": {
-                "name": tool_name,
-                "description": "Generate event data from the input.",
-                "inputSchema": {"json": schema},
-            }
-        }
-    ]
-
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"text": json.dumps(input_data)},
-                {
-                    "image": {
-                        "format": "jpeg",
+    response = client.messages.create(
+        model=MODEL_ID,
+        max_tokens=MAX_TOKENS,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": json.dumps(context)},
+                    {
+                        "type": "image",
                         "source": {
-                            "bytes": image_bytes
-                        }
-                    }
-                },
-            ],
-        },
-    ]
-    response_converse = client.converse(
-        modelId=MODEL_ID,
-        messages=messages,
-        inferenceConfig={"maxTokens": MAX_TOKENS, "temperature": TEMPERATURE},
-        toolConfig={
-            "tools": tool_list,
-            "toolChoice": {"tool": {"name": tool_name}},
-        },
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": base64.b64encode(image_bytes).decode(),
+                        },
+                    },
+                ],
+            }
+        ],
+        tools=[{"name": tool_name, "description": "Generate event data from the input.", "input_schema": schema}],
+        tool_choice={"type": "tool", "name": tool_name},
     )
 
-    response_content = (
-        response_converse.get("output", {})
-        .get("message", {})
-        .get("content", [{}])[0]
-        .get("toolUse", {})
-        .get("input", {})
-    )
-
-    return response_content
+    return next((b.input for b in response.content if b.type == "tool_use"), {})
 
 
 def generate_and_save_ai_data(instagram_id: str, instagram_url: str, preview_data: dict, table):
@@ -145,7 +156,22 @@ def generate_and_save_ai_data(instagram_id: str, instagram_url: str, preview_dat
         "description": description,
     }
 
-    ai_data = {**generate_ai_data(context, image_bytes), "instagram_url": instagram_url}
+    jev = classify_with_jev(title, description, image_bytes)
+    table.update_item(
+        Key={"id": instagram_id},
+        UpdateExpression="set jev = :j",
+        ExpressionAttributeValues={":j": {"food": str(jev["food"]), "free": jev["free"]}},
+    )
+    if jev["food"] < FOOD_GATE:
+        return None
+
+    ai_data = {
+        **generate_ai_data(context, image_bytes),
+        # The frontend filters on these two, so they keep their old names.
+        "has_food_or_drinks": jev["food"] >= FOOD_SHOW,
+        "free": jev["free"],
+        "instagram_url": instagram_url,
+    }
     table.update_item(
         Key={"id": instagram_id},
         UpdateExpression="set ai_data = :d",
@@ -186,8 +212,7 @@ def handler(event, context):
         table_name = os.environ["DYNAMO_EVENTS_TABLE_NAME"]
         table = dynamodb.Table(table_name)
         preview_data = fetch_and_save_instagram_preview(instagram_id, instagram_url, table)
-        if has_food(preview_data):
-            generate_and_save_ai_data(instagram_id, instagram_url, preview_data, table)
+        generate_and_save_ai_data(instagram_id, instagram_url, preview_data, table)
         return {
             "statusCode": 200,
             "body": json.dumps(
@@ -197,6 +222,7 @@ def handler(event, context):
             ),
         }
     except Exception as e:
+        print(f"dequeue failed: {e!r}")
         return {
             "statusCode": 500,
             "body": json.dumps(

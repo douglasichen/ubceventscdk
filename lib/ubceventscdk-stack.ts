@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as iam from "aws-cdk-lib/aws-iam";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
@@ -93,24 +92,19 @@ export class UbceventscdkStack extends cdk.Stack {
       "DequeueInstagramIdLambda",
       {
         runtime: lambda.Runtime.PYTHON_3_10,
-        code: lambda.Code.fromAsset("lambda/dequeue-instagram-id"),
+        code: lambda.Code.fromAsset("lambda/dequeue-instagram-id", { exclude: ["local.venv", "__pycache__"] }),
         handler: "index.handler",
         environment: {
           DYNAMO_EVENTS_TABLE_NAME: dynamoEventsTable.tableName,
           INSTAGRAM_ID_QUEUE_URL: instagramIdQueue.queueUrl,
           LINK_PREVIEW_API_KEY: process.env.LINK_PREVIEW_API_KEY || "",
           LINK_PREVIEW_API_URL: process.env.LINK_PREVIEW_API_URL || "",
+          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || "",
+          TYPESAFE_API_KEY: process.env.TYPESAFE_API_KEY || "",
         },
-        timeout: cdk.Duration.seconds(60),
+        timeout: cdk.Duration.seconds(90),
+        memorySize: 256,
       }
-    );
-
-    dequeueInstagramIdLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ["bedrock:InvokeModel"],
-        resources: ["*"],
-      })
     );
 
     dynamoEventsTable.grantReadWriteData(dequeueInstagramIdLambda);
