@@ -38,7 +38,12 @@ jobs:
       #     cd lambda/selenium
       #     npm ci
       - name: CDK Deploy
-        run: npx cdk deploy --require-approval never
+        # Fail instead of deploying dequeue with blank keys (the stack falls back to "").
+        run: |
+          test -n "$ANTHROPIC_API_KEY" && test -n "$TYPESAFE_API_KEY" || { echo "missing ANTHROPIC_API_KEY/TYPESAFE_API_KEY secret"; exit 1; }
+          npx cdk deploy --require-approval never
         env:
           LINK_PREVIEW_API_KEY: ${{ secrets.LINK_PREVIEW_API_KEY }}
           LINK_PREVIEW_API_URL: ${{ vars.LINK_PREVIEW_API_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
