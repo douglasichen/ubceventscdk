@@ -26,13 +26,20 @@ def handler(event, context):
         table_name = os.environ["DYNAMO_EVENTS_TABLE_NAME"]
         table = dynamodb.Table(table_name)
 
-        response = table.scan(
+        # A scan page stops at 1MB *before* filtering, so follow LastEvaluatedKey.
+        # ponytail: full table scan per request, add a GSI on event date if latency/cost bites.
+        scan_kwargs = dict(
             FilterExpression="ai_data.#dt BETWEEN :start AND :end",
             ExpressionAttributeNames={"#dt": "datetime"},
             ExpressionAttributeValues={":start": start_date, ":end": end_date},
         )
-
-        events = response.get("Items", [])
+        events = []
+        while True:
+            response = table.scan(**scan_kwargs)
+            events.extend(response.get("Items", []))
+            if "LastEvaluatedKey" not in response:
+                break
+            scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
         return {
             "statusCode": 200,
             "headers": HEADERS,
